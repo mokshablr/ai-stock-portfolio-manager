@@ -1,0 +1,27 @@
+.env
+
+analysis_results/
+data_cache/
+decision_reports/
+generated_reports/
+news_reports/
+portfolio_ai/
+
+# Python bytecode files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+.env/
+
+# macOS system files
+.DS_Store
+
+portfolio.json
+test-portfolio.json
