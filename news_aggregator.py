@@ -53,7 +53,7 @@ class NewsAggregator:
                     categorized_news["low_impact"].append(item)
         
         # Save categorized news
-        with open(os.path.join(self.news_dir, "categorized_news.json"), "w") as f:
+        with open(os.path.join(self.news_dir, "categorized_news.json"), "w", encoding="utf-8") as f:
             json.dump(categorized_news, f, indent=2)
         
         return categorized_news
@@ -107,7 +107,7 @@ class NewsAggregator:
         
         # Save summary
         today = datetime.now().strftime("%Y-%m-%d")
-        with open(os.path.join(self.news_dir, f"news_summary_{today}.md"), "w") as f:
+        with open(os.path.join(self.news_dir, f"news_summary_{today}.md"), "w", encoding="utf-8") as f:
             f.write(summary)
         
         return summary

@@ -40,7 +40,7 @@ class PortfolioAIWorkflow:
             print("Collected stock data successfully")
             
             print("Collecting news...")
-            news = self.data_collector.fetch_news(source="newsapi") #remove source
+            news = self.data_collector.fetch_news()
             print("Collected news successfully")
             
             # 2. Run portfolio analysis
@@ -83,7 +83,7 @@ class PortfolioAIWorkflow:
             self.run_history.append(run_log)
             
             # Save run history
-            with open(os.path.join(self.base_dir, "run_history.json"), "w") as f:
+            with open(os.path.join(self.base_dir, "run_history.json"), "w", encoding="utf-8") as f:
                 json.dump(self.run_history, f, indent=2)
             
             print(f"Workflow completed successfully in {duration:.2f} seconds")
@@ -108,7 +108,7 @@ class PortfolioAIWorkflow:
             self.run_history.append(error_log)
             
             # Save run history
-            with open(os.path.join(self.base_dir, "run_history.json"), "w") as f:
+            with open(os.path.join(self.base_dir, "run_history.json"), "w", encoding="utf-8") as f:
                 json.dump(self.run_history, f, indent=2)
             
             print(f"Workflow failed: {str(e)}")

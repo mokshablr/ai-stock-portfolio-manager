@@ -93,8 +93,7 @@ class DataCollector:
             raise ValueError("Invalid news source. Choose 'rss' or 'newsapi'.")
 
     def _fetch_newsapi_news(self, symbols, days):
-        news_api_key = os.getenv("NEWS_API_KEY") # Replace with your API key
-
+        news_api_key = os.getenv("NEWS_API_KEY")
 
         all_news = []
         from_date = (datetime.now() - timedelta(days=days)).strftime('%Y-%m-%d')

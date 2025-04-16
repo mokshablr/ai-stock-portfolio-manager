@@ -13,7 +13,7 @@ class LLMConnector:
         endpoint: API endpoint for Ollama
         """
         self.endpoint = endpoint or os.getenv("OLLAMA_API_ENDPOINT")
-        self.model = "llama3.2"  # or any other model you have in Ollama
+        self.model = "llama3"  # or any other model you have in Ollama
     
     def generate_content(self, prompt, max_tokens=2000):
         """
@@ -114,7 +114,7 @@ class DecisionEngine:
         
         # Save decision report
         today = datetime.now().strftime("%Y-%m-%d")
-        with open(os.path.join(self.decisions_dir, f"portfolio_decisions_{today}.md"), "w") as f:
+        with open(os.path.join(self.decisions_dir, f"portfolio_decisions_{today}.md"), "w", encoding="utf-8") as f:
             f.write(decision_report)
         
         return decision_report

@@ -70,7 +70,7 @@ class PortfolioAnalyzer:
         
         # Save results
         performance_df.to_csv(os.path.join(self.results_dir, "portfolio_performance.csv"))
-        with open(os.path.join(self.results_dir, "performance_metrics.json"), "w", encoding='utf-8') as f:
+        with open(os.path.join(self.results_dir, "performance_metrics.json"), "w", encoding="utf-8") as f:
             json.dump(performance_metrics, f, indent=2)
         
         return performance_df, performance_metrics
@@ -139,7 +139,7 @@ class PortfolioAnalyzer:
                 }
         
         # Save results
-        with open(os.path.join(self.results_dir, "stock_contributions.json"), "w") as f:
+        with open(os.path.join(self.results_dir, "stock_contributions.json"), "w", encoding="utf-8") as f:
             json.dump(contributions, f, indent=2)
         
         return contributions
@@ -212,7 +212,7 @@ class PortfolioAnalyzer:
             })
         
         # Save suggestions
-        with open(os.path.join(self.results_dir, "optimization_suggestions.json"), "w") as f:
+        with open(os.path.join(self.results_dir, "optimization_suggestions.json"), "w", encoding="utf-8") as f:
             json.dump(suggestions, f, indent=2)
         
         return suggestions
