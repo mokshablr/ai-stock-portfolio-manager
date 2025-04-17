@@ -21,29 +21,27 @@ class ReportGenerator:
         self.reports_dir = "generated_reports"
         os.makedirs(self.reports_dir, exist_ok=True)
     
-    def generate_daily_report(self):
+    def generate_daily_report(self, performance, contributions, suggestions, news_summary, decision_report):
         """Generate a comprehensive daily report"""
+        print("ReportGenerator | Generating daily report...")
         today = datetime.now().strftime("%Y-%m-%d")
         
         # 1. Get all necessary data
-        performance_df, metrics = self.analyzer.calculate_portfolio_performance()
-        contributions = self.analyzer.analyze_stock_contributions()
-        suggestions = self.analyzer.generate_optimization_suggestions()
-        news_summary = self.news.summarize_news()
-        decision_report = self.decisions.generate_portfolio_decisions()
-        
+        performance_df, metrics = performance
         # 2. Create visualizations
-        self.analyzer.visualize_portfolio()
+        self.analyzer.visualize_portfolio(contributions, performance)
         
         # 3. Create PDF report
         pdf = FPDF()
         pdf.add_page()
         
         # Title
+        print("ReportGenerator | Generating PDF report...")
         pdf.set_font("Arial", "B", 16)
         pdf.cell(190, 10, f"Portfolio Report - {today}", 0, 1, "C")
         
         # Performance metrics
+        print("ReportGenerator | Portfolio Performance")
         pdf.set_font("Arial", "B", 14)
         pdf.cell(190, 10, "Portfolio Performance", 0, 1, "L")
         pdf.set_font("Arial", "", 10)
@@ -54,6 +52,7 @@ class ReportGenerator:
         pdf.multi_cell(190, 5, f"Maximum Drawdown: {metrics['max_drawdown']:.2%}")
         
         # Add portfolio composition image
+        print("ReportGenerator | Portfolio Composition")
         pdf.add_page()
         pdf.set_font("Arial", "B", 14)
         pdf.cell(190, 10, "Portfolio Composition", 0, 1, "L")
@@ -62,6 +61,7 @@ class ReportGenerator:
             pdf.image(composition_path, x=10, y=30, w=170)
         
         # Performance chart
+        print("ReportGenerator | Performance Chart")
         pdf.add_page()
         pdf.set_font("Arial", "B", 14)
         pdf.cell(190, 10, "Performance Chart", 0, 1, "L")
@@ -70,6 +70,7 @@ class ReportGenerator:
             pdf.image(performance_path, x=10, y=30, w=170)
         
         # Stock returns
+        print("ReportGenerator | Individual Stock Returns")
         pdf.add_page()
         pdf.set_font("Arial", "B", 14)
         pdf.cell(190, 10, "Individual Stock Returns", 0, 1, "L")
@@ -78,6 +79,7 @@ class ReportGenerator:
             pdf.image(returns_path, x=10, y=30, w=170)
         
         # Optimization suggestions
+        print("ReportGenerator | Optimization Suggestions")
         pdf.add_page()
         pdf.set_font("Arial", "B", 14)
         pdf.cell(190, 10, "Optimization Suggestions", 0, 1, "L")
@@ -91,6 +93,7 @@ class ReportGenerator:
             pdf.ln(5)
         
         # News summary
+        print("ReportGenerator | News Summary:")
         pdf.add_page()
         pdf.set_font("Arial", "B", 14)
         pdf.cell(190, 10, "News Summary", 0, 1, "L")
@@ -109,6 +112,7 @@ class ReportGenerator:
                 pdf.ln(3)
         
         # Decision report
+        print("ReportGenerator | Portfolio Decisions & Recommendations")
         pdf.add_page()
         pdf.set_font("Arial", "B", 14)
         pdf.cell(190, 10, "Portfolio Decisions & Recommendations", 0, 1, "L")
@@ -127,6 +131,7 @@ class ReportGenerator:
                 pdf.ln(3)
         
         # Save PDF
+        print("ReportGenerator | Saving PDF report...")
         report_path = os.path.join(self.reports_dir, f"portfolio_report_{today}.pdf")
         pdf.output(report_path)
         
@@ -134,6 +139,7 @@ class ReportGenerator:
         top_reco = decision_report.split('\n\n')[1] if '\n\n' in decision_report else decision_report[:200]
         
         # Also create a simple text summary for email/messaging
+        print("ReportGenerator | Generating text summary...")
         text_summary = f"""
         PORTFOLIO REPORT SUMMARY - {today}
         
@@ -152,6 +158,7 @@ class ReportGenerator:
         """
         
         summary_path = os.path.join(self.reports_dir, f"summary_{today}.md")
+        print("ReportGenerator | Writing text summary...")
         with open(summary_path, "w", encoding="utf-8") as f:
             f.write(text_summary)
         

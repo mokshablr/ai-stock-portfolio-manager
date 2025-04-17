@@ -15,12 +15,15 @@ class NewsAggregator:
         self.news_dir = "news_reports"
         os.makedirs(self.news_dir, exist_ok=True)
     
-    def fetch_and_categorize_news(self, days=3):
+    def fetch_and_categorize_news(self, news_items=None, days=3):
         """
         Fetch news and categorize by impact and relevance
         days: Number of past days to fetch news for
         """
-        news_items = self.data_collector.fetch_news(days=days)
+        print("NewsAggregator | Fetching news...")
+        if news_items is None:
+            news_items = self.data_collector.fetch_news(days=days)
+            
         portfolio_symbols = self.data_collector.portfolio["stocks"]
         
         # Categorize news
@@ -63,6 +66,7 @@ class NewsAggregator:
         Summarize news using LLM
         categorized_news: Pre-categorized news dict (if None, will fetch new)
         """
+        print("NewsAggregator | Summarizing news...")
         if categorized_news is None:
             categorized_news = self.fetch_and_categorize_news()
         

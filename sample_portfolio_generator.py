@@ -57,7 +57,7 @@ sample_portfolio = {
 }
 
 # Write to file
-with open("my-portfolio.json", "w") as f:
+with open("my-portfolio.json", "w", encoding="utf-8") as f:
     json.dump(sample_portfolio, f, indent=2)
 
 print("Sample portfolio file created: portfolio.json")

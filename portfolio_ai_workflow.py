@@ -35,36 +35,51 @@ class PortfolioAIWorkflow:
         
         try:
             # 1. Collect data
-            print("Collecting stock data...")
-            stock_data = self.data_collector.fetch_stock_data()
-            print("Collected stock data successfully")
-            
-            print("Collecting news...")
-            news = self.data_collector.fetch_news()
-            print("Collected news successfully")
+            print("1 - Collecting data...")
+            print("1.1 - Collecting stock data...")
+            stock_data = self.data_collector.fetch_stock_data("1y")
+            print("1.1 - Collected stock data successfully")
+            print("1.2 - Collecting news...")
+            news = self.data_collector.fetch_news(days=3)
+            print("1.2 - Collected news successfully")
+            print("1 - Data collection completed successfully")
             
             # 2. Run portfolio analysis
-            print("Analyzing portfolio...")
-            performance = self.portfolio_analyzer.calculate_portfolio_performance()
-            contributions = self.portfolio_analyzer.analyze_stock_contributions()
-            suggestions = self.portfolio_analyzer.generate_optimization_suggestions()
-            print("Portfolio analysis completed successfully")
+            print("2 - Running portfolio analysis...")
+            print("2.1 - Analyzing portfolio...")
+            performance = self.portfolio_analyzer.calculate_portfolio_performance(stock_data=stock_data)
+            print("2.1 - Portfolio performance calculated successfully")
+            print("2.2 - Analyzing stock contributions...")
+            contributions = self.portfolio_analyzer.analyze_stock_contributions(stock_data=stock_data)
+            print("2.2 Stock contributions analyzed successfully")
+            print("2.3 - Generating optimization suggestions...")
+            suggestions = self.portfolio_analyzer.generate_optimization_suggestions(performance, contributions, stock_data=stock_data)
+            print("2.3 Optimization suggestions generated successfully")
+            print("2 - Portfolio analysis completed successfully")
 
             # 3. Process news
-            print("Processing news...")
-            categorized_news = self.news_aggregator.fetch_and_categorize_news()
+            print("3 - Processing news...")
+            print("3.1 - Processing news...")
+            categorized_news = self.news_aggregator.fetch_and_categorize_news(news_items=news)
+            print("3.1 - News categorized successfully")
+            print("3.2 - Summarizing news...")
             news_summary = self.news_aggregator.summarize_news(categorized_news)
-            print("News processing completed successfully")
+            print("3.2 - News summarized successfully")
+            print("3 - News processing completed successfully")
 
             # 4. Generate decisions
-            print("Generating investment decisions...")
-            decisions = self.decision_engine.generate_portfolio_decisions()
-            print("Investment decisions generated successfully")
+            print("4 - Generating investment decisions...")
+            print("4.1 - Generating investment decisions...")
+            decisions = self.decision_engine.generate_portfolio_decisions(performance, contributions, suggestions, news_summary)
+            print("4.1 - Investment decisions generated successfully")
+            print("4 - Investment decisions completed successfully")
 
             # 5. Create reports
-            print("Generating reports...")
-            report_info = self.report_generator.generate_daily_report()
-            print("Reports generated successfully")
+            print("5 - Generating reports...")
+            print("5.1 - Generating performance report...")
+            report_info = self.report_generator.generate_daily_report(performance, contributions, suggestions, news_summary, decisions)
+            print("5.1 - Performance report generated successfully")
+            print("5 - Report generation completed successfully")
 
             # 6. Log completion
             end_time = datetime.now()

@@ -15,15 +15,19 @@ class PortfolioAnalyzer:
         self.data_collector = data_collector
         self.portfolio = data_collector.portfolio
         self.results_dir = "analysis_results"
+        self.nifty_data = data_collector.fetch_nifty_data("1y")
         os.makedirs(self.results_dir, exist_ok=True)
     
-    def calculate_portfolio_performance(self, timeframe="1y"):
+    def calculate_portfolio_performance(self, stock_data=None, timeframe="1y"):
         """
         Calculate overall portfolio performance
         timeframe: Time period for performance calculation
         """
-        print("Calculating portfolio performance inside analyzer...")
-        stock_data = self.data_collector.fetch_stock_data(timeframe)
+        print("PotfolioAnalyser | Calculating portfolio performance...")
+        if stock_data is None:
+            # Fetch stock data if not provided
+            stock_data = self.data_collector.fetch_stock_data(timeframe)
+
         portfolio_value_history = []
         
         # Get date range from the first stock (assumes all stocks have same date range)
@@ -77,38 +81,66 @@ class PortfolioAnalyzer:
     
     def _calculate_max_drawdown(self, price_series):
         """Calculate maximum drawdown from a price series"""
+        print("PotfolioAnalyser | Calculating maximum drawdown...")
         roll_max = price_series.cummax()
         drawdown = (price_series / roll_max) - 1
         return drawdown.min()
     
-    def analyze_stock_contributions(self):
+    def analyze_stock_contributions(self, stock_data=None):
         """Analyze how each stock contributes to portfolio performance and risk"""
-        print("Analyzing stock contributions inside analyzer...")
-        stock_data = self.data_collector.fetch_stock_data("1y")
+        print("PotfolioAnalyser | Analyzing stock contributions...")
+        if stock_data is None:
+            # Fetch stock data if not provided
+            stock_data = self.data_collector.fetch_stock_data("1y")
+
         contributions = {}
+
+        # Calculate total investment based on initial prices(start of fetched data)
+        # total_investment = 0
+        # for symbol, quantity in self.portfolio.get("holdings", {}).items():
+        #     if symbol in stock_data:
+        #         initial_price = stock_data[symbol]["Close"].iloc[0]
+        #         total_investment += initial_price * quantity
         
-        total_investment = sum(self.portfolio.get("holdings", {}).values())
-        
+        # Calculate total investment based on average buy cost basis (personalised)
+        total_investment = 0
+        for symbol, quantity in self.portfolio.get("holdings", {}).items():
+            if symbol in stock_data:
+                print(f"PotfolioAnalyser | Calculating initial investment for {symbol}...")
+                avg_buy_price = self.portfolio["avg_costs"].get(symbol)
+                initial_value = avg_buy_price * quantity
+                total_investment += initial_value
+
         for symbol, quantity in self.portfolio.get("holdings", {}).items():
             if symbol in stock_data:
                 # Get latest price
                 latest_price = stock_data[symbol]["Close"].iloc[-1]
-                initial_price = stock_data[symbol]["Close"].iloc[0]
+
+                # Get initial price (start of fetched data), 
+                # else use average cost basis from avg_buy_price
+                # initial_price = stock_data[symbol]["Close"].iloc[0]
+                avg_buy_price = self.portfolio["avg_costs"].get(symbol)
+                initial_price = avg_buy_price
                 
                 # Calculate metrics
                 current_value = latest_price * quantity
+                # initial_value = initial_price * quantity
+                
                 initial_value = initial_price * quantity
-                weight = current_value / (total_investment * latest_price)
+
+                weight = current_value / total_investment
+                print(f"PotfolioAnalyser | Calculating stock return for {symbol}...")
                 stock_return = (latest_price / initial_price) - 1
+                print(f"PotfolioAnalyser | Stock return for {symbol}: {stock_return:.2%}")
                 contribution_to_return = stock_return * weight
                 
-                print(f"Calculating beta for {symbol}...")
+                print(f"PotfolioAnalyser | Calculating beta for {symbol}...")
+
                 # Get stock beta (if available) or calculate
                 # For simplicity, we'll use correlation to Nifty as a proxy for beta
-                nifty_data = self.data_collector.fetch_stock_data("1y").get("NIFTY50", None)
-                if nifty_data is not None:
+                if self.nifty_data is not None:
                     stock_returns = stock_data[symbol]["Close"].pct_change().dropna()
-                    nifty_returns = nifty_data["Close"].pct_change().dropna()
+                    nifty_returns = self.nifty_data["Close"].pct_change().dropna()
                     
                     # Align dates
                     aligned_data = pd.concat([stock_returns, nifty_returns], axis=1).dropna()
@@ -123,16 +155,17 @@ class PortfolioAnalyzer:
                     beta = None
                 
                 # Get financial metrics
+                print(f"PotfolioAnalyser | Calculating financial metrics for {symbol}...")
                 metrics = self.data_collector.fetch_financial_metrics(symbol)
                 
                 # Store all data
                 contributions[symbol] = {
                     "quantity": quantity,
-                    "current_price": latest_price,
-                    "current_value": current_value,
+                    "current_price": round(latest_price, 2), 
+                    "current_value": round(current_value, 2),
                     "weight": weight,
-                    "return": stock_return,
-                    "contribution_to_return": contribution_to_return,
+                    "return": round(stock_return, 2),
+                    "contribution_to_return": round(contribution_to_return, 2),
                     "correlation_to_market": correlation,
                     "beta": beta,
                     "financial_metrics": metrics
@@ -141,16 +174,17 @@ class PortfolioAnalyzer:
         # Save results
         with open(os.path.join(self.results_dir, "stock_contributions.json"), "w", encoding="utf-8") as f:
             json.dump(contributions, f, indent=2)
-        
+
+        print(f"PotfolioAnalyser | Stock contributions analysis complete. Found {len(contributions)} stocks.")
         return contributions
     
-    def generate_optimization_suggestions(self):
+    def generate_optimization_suggestions(self, performance, contributions:dict, stock_data=None):
         """
         Generate portfolio optimization suggestions based on analysis
         Uses simple rules for now - will be enhanced with LLM in the next module
         """
-        contributions = self.analyze_stock_contributions()
-        performance_df, metrics = self.calculate_portfolio_performance()
+        print("PotfolioAnalyser | Generating optimization suggestions...")
+        performance_df, metrics = performance
         
         # Simple rule-based suggestions
         suggestions = []
@@ -165,9 +199,11 @@ class PortfolioAnalyzer:
                     "reasoning": f"{symbol} makes up {data['weight']:.1%} of your portfolio, which may increase concentration risk.",
                     "severity": "medium"
                 })
-        
+
+        nifty_prices = self.nifty_data["Close"]
+
         # 2. Check for underperforming stocks (negative return and underperforming market)
-        market_return = 0.10  # Placeholder - should be dynamically calculated based on Nifty/Sensex
+        market_return = (nifty_prices.iloc[-1] / nifty_prices.iloc[0]) - 1
         for symbol, data in contributions.items():
             if data["return"] < 0 and data["return"] < market_return - 0.05:
                 suggestions.append({
@@ -217,10 +253,15 @@ class PortfolioAnalyzer:
         
         return suggestions
     
-    def visualize_portfolio(self):
+    def visualize_portfolio(self, contributions=None, performance=None):
         """Create visualizations of portfolio composition and performance"""
-        contributions = self.analyze_stock_contributions()
-        performance_df, _ = self.calculate_portfolio_performance()
+        print("PotfolioAnalyser | Generating visualizations...")
+        if contributions is None:
+            contributions = self.analyze_stock_contributions()
+        if performance is None:
+            performance_df, _ = self.calculate_portfolio_performance()
+        
+        performance_df, _ = performance
         
         # 1. Portfolio composition pie chart
         plt.figure(figsize=(10, 6))
@@ -278,4 +319,4 @@ if __name__ == "__main__":
     suggestions = analyzer.generate_optimization_suggestions()
     visualizations = analyzer.visualize_portfolio()
     
-    print(f"Analysis complete. Found {len(suggestions)} optimization suggestions.")
+    print(f"PotfolioAnalyser | Analysis complete. Found {len(suggestions)} optimization suggestions.")

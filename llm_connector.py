@@ -21,6 +21,7 @@ class LLMConnector:
         prompt: The prompt to send to the LLM
         max_tokens: Maximum number of tokens to generate
         """
+        print(f"LLMConnector | Generating content with prompt: {prompt[:50]}...")
         payload = {
             "model": self.model,
             "prompt": prompt,
@@ -32,11 +33,11 @@ class LLMConnector:
             response = requests.post(self.endpoint, json=payload)
             if response.status_code == 200:
                 result = response.json()
-                return result.get("response", "Error: No response found")
+                return result.get("response", "LLMConnector | Error: No response found")
             else:
-                return f"Error: {response.status_code} - {response.text}"
+                return f"LLMConnector | Error: {response.status_code} - {response.text}"
         except Exception as e:
-            return f"Exception when calling Ollama API: {str(e)}"
+            return f"LLMConnector | Exception when calling Ollama API: {str(e)}"
 
 class DecisionEngine:
     def __init__(self, portfolio_analyzer, news_aggregator, llm_connector):
@@ -52,15 +53,15 @@ class DecisionEngine:
         self.decisions_dir = "decision_reports"
         os.makedirs(self.decisions_dir, exist_ok=True)
     
-    def generate_portfolio_decisions(self):
+    def generate_portfolio_decisions(self, performance, stock_contributions, suggestions, news_summary=None):
         """Generate portfolio decisions based on analysis and news"""
+        print("DecisionEngine | Generating portfolio decisions...")
         # 1. Get portfolio analysis data
-        performance_metrics = self.analyzer.calculate_portfolio_performance()[1]
-        stock_contributions = self.analyzer.analyze_stock_contributions()
-        suggestions = self.analyzer.generate_optimization_suggestions()
+        performance_metrics = performance[1]
         
         # 2. Get news summary
-        news_summary = self.news.summarize_news()
+        if news_summary is None:
+            news_summary = self.news.summarize_news()
         
         # 3. Create prompt for LLM
         prompt_template = """
